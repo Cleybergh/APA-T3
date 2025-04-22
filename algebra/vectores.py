@@ -1,87 +1,95 @@
-"""
-    Tercera tarea de APA - manejo de vectores
+# -*- coding: utf-8 -*-
+"""vectores.ipynb
 
-    Nombre y apellidos:
+Archivo generado automáticamente desde Colab.
+
+Documento original disponible en:
+    https://colab.research.google.com/drive/1JmyTEjNhyvXcwmVtABPDF28ONRRtWQHV
 """
+
+"""
+algebra/vectores.py
+
+Autor: David Bueno Cleybergh
+
+Este archivo contiene la definición de la clase Vector, la cual permite efectuar diversas operaciones con vectores, entre ellas:
+
+- Suma entre vectores
+- Multiplicación por un escalar
+- Producto de Hadamard (elemento a elemento)
+- Producto escalar (dot product)
+- Cálculo de las componentes tangencial y normal en relación con otro vector
+
+>>> v1 = Vector([1, 2, 3])
+>>> v2 = Vector([4, 5, 6])
+>>> v1 * 2
+Vector([2, 4, 6])
+>>> v1 * v2
+Vector([4.0, 10.0, 18.0])
+>>> v1 @ v2
+32
+>>> v1 = Vector([2, 1, 2])
+>>> v2 = Vector([0.5, 1, 0.5])
+>>> v1 // v2
+Vector([1.0, 2.0, 1.0])
+>>> v1 % v2
+Vector([1.0, -1.0, 1.0])
+"""
+
+import math
 
 class Vector:
-    """
-    Clase usada para trabajar con vectores sencillos
-    """
-    def __init__(self, iterable):
-        """
-        Costructor de la clase Vector. Su único argumento es un iterable con las componentes del vector.
-        """
-
-        self.vector = [valor for valor in iterable]
-
-        return None      # Orden superflua
+    def __init__(self, componentes):
+        self.componentes = list(componentes)
 
     def __repr__(self):
-        """
-        Representación *oficial* del vector que permite construir uno nuevo idéntico mediante corta-y-pega.
-        """
-
-        return 'Vector(' + repr(self.vector) + ')'
-
-    def __str__(self):
-        """
-        Representación *bonita* del vector.
-        """
-
-        return str(self.vector)
-
-    def __getitem__(self, key):
-        """
-        Devuelve un elemento o una loncha del vector.
-        """
-
-        return self.vector[key]
-
-    def __setitem__(self, key, value):
-        """
-        Fija el valor de una componente o loncha del vector.
-        """
-
-        self.vector[key] = value
-
-    def __len__(self):
-        """
-        Devuelve la longitud del vector.
-        """
-
-        return len(self.vector)
+        return f"Vector({self.componentes})"
 
     def __add__(self, other):
-        """
-        Suma al vector otro vector o una constante.
-        """
+        return Vector([x + y for x, y in zip(self.componentes, other.componentes)])
 
-        if isinstance(other, (int, float, complex)):
-            return Vector(uno + other for uno in self)
+    def __mul__(self, other):
+        """
+        Realiza el producto Hadamard (entre vectores) o la multiplicación por escalar (si se da un número).
+        """
+        if isinstance(other, (int, float)):
+            return Vector([x * other for x in self.componentes])
+        elif isinstance(other, Vector):
+            return Vector([float(x * y) for x, y in zip(self.componentes, other.componentes)])
         else:
-            return Vector(uno + otro for uno, otro in zip(self, other))
+            return NotImplemented
 
-    __radd__ = __add__
+    def __rmul__(self, other):
+        return self.__mul__(other)
 
-    def __neg__(self):
+    def __matmul__(self, other):
         """
-        Invierte el signo del vector.
+        Calcula el producto escalar entre dos vectores.
         """
+        return sum(x * y for x, y in zip(self.componentes, other.componentes))
 
-        return Vector([-1 * item for item in self])
+    def __floordiv__(self, other):
+        escalar = (self @ other) / (other.norma() ** 2)
+        return Vector([round(x * escalar, 6) for x in other.componentes])
+
+    def __mod__(self, other):
+        """
+        Obtiene la componente normal (perpendicular) de este vector respecto a otro.
+
+        Se calcula como: v1 % v2 = v1 - (v1 // v2)
+        """
+        return self - (self // other)
+
+    def norma(self):
+        """
+        Retorna la longitud o magnitud del vector.
+        """
+        return math.sqrt(sum(x**2 for x in self.componentes))
 
     def __sub__(self, other):
-        """
-        Resta al vector otro vector o una constante.
-        """
+        return Vector([round(x - y, 6) for x, y in zip(self.componentes, other.componentes)])
 
-        return -(-self + other)
 
-    def __rsub__(self, other):     # No puede ser __rsub__ = __sub__
-        """
-        Método reflejado de la resta, usado cuando el primer elemento no pertenece a la clase Vector.
-        """
-
-        return -self + other
-
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod(verbose=True)
